@@ -13,16 +13,13 @@
     #};
   };
 
-  outputs = inputs@{ nixpkgs, home-manager, ... }: {
+  outputs = { nixpkgs, home-manager, ... }: {
     nixosConfigurations = {
 
       desktop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./systems/desktop/configuration.nix
-          ./systems/desktop/hardware-configuration.nix
-          ./systems/nvidia.nix
-          ./systems/audio.nix
 
           home-manager.nixosModules.home-manager
           {
@@ -37,8 +34,6 @@
         system = "x86_64-linux";
         modules = [
           ./systems/worklapthib/configuration.nix
-          ./systems/worklapthib/hardware-configuration.nix
-          ./systems/audio.nix
 
           home-manager.nixosModules.home-manager
           {

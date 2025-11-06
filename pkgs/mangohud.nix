@@ -1,4 +1,4 @@
-{ pkgs, config, ...}:
+{ pkgs, ...}:
 
 {
   home.packages = [ pkgs.mangohud ];
@@ -13,7 +13,7 @@
     gpu_stats
     gpu_temp
     gpu_power
-    gpu_fan
+    # gpu_fan
     vram
 
     cpu_stats

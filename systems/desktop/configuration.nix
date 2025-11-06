@@ -1,8 +1,13 @@
 { pkgs, ... }:
 {
   imports = [
-    ./nvidia.nix
-    # ./hyprland.nix
+    ./hardware-configuration.nix
+    ../audio.nix
+    ../nvidia.nix
+  ];
+
+  nixpkgs.config.permittedInsecurePackages = [
+    "googleearth-pro-7.3.6.10201"
   ];
 
   boot.loader.systemd-boot.enable = true;
@@ -10,8 +15,23 @@
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  networking.hostName = "nixos";
-  networking.networkmanager.enable = true;
+  networking = {
+    hostName = "desktop-nixos";
+
+    networkmanager.enable = true;
+    networkmanager.dns = "none";
+
+    firewall = {
+      enable = true;
+      allowedTCPPorts = [ 25565 ];
+    };
+
+    nameservers = [
+      "9.9.9.9"
+      "149.112.112.112"
+
+      ];
+  };
 
   time.timeZone = "Europe/Luxembourg";
 
@@ -31,6 +51,10 @@
   services.xserver.xkb = {
     layout = "be";
     variant = "";
+  };
+
+  services.openssh = {
+    enable = true;
   };
 
   console.keyMap = "be-latin1";
@@ -75,12 +99,6 @@
   nixpkgs.config.allowUnfree = true;
 
   zramSwap.enable = true;
-
-  networking.firewall = {
-    enable = true;
-    allowedTCPPorts = [ 25565 ]; 
-  };
-  networking.nameservers = [ "9.9.9.9" ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

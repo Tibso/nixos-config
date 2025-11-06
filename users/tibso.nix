@@ -1,10 +1,8 @@
 { pkgs, ... }:
-let
-  beyond-all-reason = import ./beyond-all-reason.nix { inherit (pkgs) appimageTools fetchurl lib openal; };
-in
 {
   imports = [
-    ./mangohud.nix
+    ../pkgs/mangohud.nix
+    ../pkgs/tmux.nix
   ];
 
   home.username = "tibso";
@@ -23,6 +21,8 @@ in
   nixpkgs.config.allowUnfree = true;
 
   home.packages = with pkgs; [
+    (obs-studio.override { cudaSupport = true; })
+    ghidra
     googleearth-pro
     beyond-all-reason
     aircrack-ng
@@ -65,7 +65,6 @@ in
     gnome-tweaks
     pcsx2
     osu-lazer
-    protonup
     r2modman
     prismlauncher
     lutris
