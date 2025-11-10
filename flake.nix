@@ -7,13 +7,13 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    #nixvim = {
-    #  url = "github:nix-community/nixvim";
-    #  inputs.nixpkgs.follows = "nixpkgs";
-    #};
+    nixvim = {
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { nixpkgs, home-manager, ... }: {
+  outputs = { nixpkgs, home-manager, nixvim, ... }: {
     nixosConfigurations = {
 
       desktop = nixpkgs.lib.nixosSystem {
@@ -26,6 +26,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.tibso = ./users/tibso.nix;
+            home-manager.sharedModules = [ nixvim.homeModules.nixvim ];
           }
         ];
       };
@@ -40,6 +41,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.thibaut = ./users/thibaut.nix;
+            home-manager.sharedModules = [ nixvim.homeModules.nixvim ];
           }
         ];
       };

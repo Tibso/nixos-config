@@ -1,8 +1,8 @@
-{ pkgs, config, ... }:
+{ pkgs, ... }:
 
 {
   imports = [
-    # ../pkgs/nixvim/nixvim.nix
+    ../pkgs/nixvim/nixvim.nix
     ../pkgs/tmux.nix
   ];
 
@@ -18,11 +18,21 @@
   # release notes.
   home.stateVersion = "24.05";
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
+  services.gpg-agent.enable = true;
 
   home.packages = with pkgs; [
-    #googleearth-pro
+    # should check how many of these should only be present in a nix-shell
+    gnumake
+    openssl
+    usbutils
+    pciutils
+    googleearth-pro
+    gnupg
+    pass
+    (pkgs.burpsuite.override {
+      proEdition = true;
+    })
+    neofetch
     aircrack-ng
     whois
     xclip
@@ -96,6 +106,8 @@
     };
     bashrcExtra = ''
       export PS1="\n\[\e[1;32m\]\u\[\e[m\] \[\e[1;35m\]\w\[\e[m\] \[\e[1m\]\$\[\e[m\] ";
+      export HORIZON_PASSWORD_XCLIP=true
+      export HORIZON_PASSWORD_EXPORT=~/.passm/current-horizon.csv
     '';
     initExtra = ''
       if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then

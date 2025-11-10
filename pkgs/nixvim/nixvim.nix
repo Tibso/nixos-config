@@ -6,18 +6,18 @@ let
   in
     map (file: import (folder + "/${file}")) files;
 
-  foldersImports = readFolders ./plugins ++ readFolders ./languages;
+  allImports = readFolders ./plugins ++ readFolders ./languages;
 in
 {
     imports = [
       ./options.nix
       ./keybinds.nix
-    ] ++ foldersImports;
+    ] ++ allImports;
 
   programs.nixvim = {
     enable = true;
     defaultEditor = true;
-    viAlias = false;
+    viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
 

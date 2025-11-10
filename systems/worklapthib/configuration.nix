@@ -9,6 +9,10 @@
     ../audio.nix
   ];
 
+  nixpkgs.config.permittedInsecurePackages = [
+    "googleearth-pro-7.3.6.10201"
+  ];
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
@@ -27,24 +31,16 @@
         wg0 = {
           ips = [
             ####
-            ####
           ];
           peers = [{
             allowedIPs = [
               ####
-              ####
-              ####
-              ####
-              ####
-              ####
-              ####
-              ####
             ];
-            #endpoint = ####;
-            #publicKey = ####;
+            endpoint = ####;
+            publicKey = ####;
             persistentKeepalive = 15;
           }];
-          #privateKey = ####;
+          privateKey = ####;
         };
       };
     };
@@ -52,13 +48,14 @@
 
   services.dnsmasq = {
     enable = true;
-    servers = [
-      ####
+    settings.server = [
       ####
       "9.9.9.9"
       "149.112.112.112"
     ];
   };
+
+  hardware.bluetooth.powerOnBoot = false;
 
   time.timeZone = "Europe/Luxembourg";
   i18n.defaultLocale = "en_US.UTF-8";
@@ -82,6 +79,8 @@
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
+  programs.gnupg.agent.enable = true;
+
   users.users.thibaut = {
     isNormalUser = true;
     description = "Thibaut";
@@ -91,7 +90,12 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  virtualisation.docker.enable = true;
+  virtualisation.docker = {
+    enable = true;
+    daemon.settings = {
+      default-address-pools = [{ base = "172.100.0.0/16"; size = 24; }];
+    };
+  };
 
   services.pcscd.enable = true;
 
