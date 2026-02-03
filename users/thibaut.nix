@@ -1,5 +1,7 @@
 { pkgs, ... }:
-
+let
+  luxtrust-middleware = import ../pkgs/luxtrust-middleware.nix { inherit (pkgs) pkgs fetchurl lib stdenv dpkg autoPatchelfHook makeWrapper; };
+in
 {
   imports = [
     ../pkgs/nixvim/nixvim.nix
@@ -22,13 +24,13 @@
 
   home.packages = with pkgs; [
     # should check how many of these should only be present in a nix-shell
-    gnumake
-    openssl
-    usbutils
-    pciutils
-    googleearth-pro
+    postman
+    remmina
+    luxtrust-middleware
+    googleearth-pro # needs security exclusion in configuration.nix
     gnupg
     pass
+    ghidra
     (pkgs.burpsuite.override {
       proEdition = true;
     })
@@ -36,7 +38,6 @@
     aircrack-ng
     whois
     xclip
-    rustup
     thunderbird-latest
     blender
     pulseeffects-legacy
@@ -54,7 +55,6 @@
     reaper
     git
     davinci-resolve
-    python312
     unzip
     jdk
     wirelesstools

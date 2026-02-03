@@ -9,15 +9,15 @@ let
   allImports = readFolders ./plugins ++ readFolders ./languages;
 in
 {
-    imports = [
-      ./options.nix
-      ./keybinds.nix
-    ] ++ allImports;
+  imports = [
+    ./options.nix
+    ./keybinds.nix
+  ] ++ allImports;
 
   programs.nixvim = {
     enable = true;
     defaultEditor = true;
-    viAlias = true;
+    viAlias = false;
     vimAlias = true;
     vimdiffAlias = true;
 
@@ -31,7 +31,7 @@ in
       };
     };
 
-    diagnostic.settings.virtual_lines = true;
+    diagnostic.settings.virtual_text.enable = true;
 
     plugins = {
       lsp.enable = true;

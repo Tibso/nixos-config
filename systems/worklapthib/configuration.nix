@@ -1,8 +1,7 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
+# Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -29,18 +28,14 @@
       enable = true;
       interfaces = {
         wg0 = {
-          ips = [
-            ####
-          ];
+          ips = lib.filter (s: s != "") (lib.splitString "\n" (builtins.readFile "/nix/persist/secrets/wireguard/wg0-ips"));
           peers = [{
-            allowedIPs = [
-              ####
-            ];
-            endpoint = ####;
-            publicKey = ####;
+            allowedIPs = lib.filter (s: s != "") (lib.splitString "\n" (builtins.readFile "/nix/persist/secrets/wireguard/wg0-peer-allowed-ips"));
+            endpoint = lib.removeSuffix "\n" (builtins.readFile "/nix/persist/secrets/wireguard/wg0-peer-endpoint");
+            publicKey = lib.removeSuffix "\n" (builtins.readFile "/nix/persist/secrets/wireguard/wg0-peer-public-key");
             persistentKeepalive = 15;
           }];
-          privateKey = ####;
+          privateKeyFile = "/nix/persist/secrets/wireguard/wg0-private-key";
         };
       };
     };
@@ -48,11 +43,11 @@
 
   services.dnsmasq = {
     enable = true;
-    settings.server = [
-      ####
-      "9.9.9.9"
-      "149.112.112.112"
-    ];
+    settings = {
+      server = lib.filter (s: s != "") (lib.splitString "\n" (builtins.readFile "/nix/persist/secrets/dnsmasq/servers"))
+        ++ [ "9.9.9.9" "149.112.112.112" "2620:fe::fe" "2620:fe::9" ]; # quad9
+      listen-address = [ "127.0.0.1" "::1" "172.100.0.1" ];
+    };
   };
 
   hardware.bluetooth.powerOnBoot = false;
@@ -94,12 +89,19 @@
     enable = true;
     daemon.settings = {
       default-address-pools = [{ base = "172.100.0.0/16"; size = 24; }];
+      dns = [ "172.100.0.1" ];
+      insecure-registries = [ "localhost:5000" "127.0.0.1:5000" ];
     };
   };
 
   services.pcscd.enable = true;
 
-  zramSwap.enable = true;
+  # zram on 16GB of RAM is not sufficient
+  #zramSwap.enable = true;
+  swapDevices = [{
+    device = "/var/lib/swapfile";
+    size = 16*1024;
+  }];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

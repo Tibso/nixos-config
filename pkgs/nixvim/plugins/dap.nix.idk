@@ -7,7 +7,7 @@
         executables = { lldb = { command = "${pkgs.lldb}/bin/lldb-dap"; }; };
       };
     };
-    dap-ui.enable = true;
-    dap-virtual-text.enable = true;
+    #dap-ui.enable = true;
+    #dap-virtual-text.enable = true;
   };
 }
