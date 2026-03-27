@@ -1,6 +1,7 @@
 { pkgs, ... }:
 let
-  luxtrust-middleware = import ../pkgs/luxtrust-middleware.nix { inherit (pkgs) pkgs fetchurl lib stdenv dpkg autoPatchelfHook makeWrapper; };
+  luxtrust-middleware = import ../pkgs/luxtrust-middleware.nix { inherit (pkgs) pkgs fetchurl lib stdenv dpkg autoPatchelfHook buildFHSEnv; };
+  openconnect-via-luxtrust = import ../pkgs/openconnect-via-luxtrust.nix { inherit pkgs; };
 in
 {
   imports = [
@@ -24,6 +25,8 @@ in
 
   home.packages = with pkgs; [
     # should check how many of these should only be present in a nix-shell
+    signal-desktop
+    openconnect-via-luxtrust
     postman
     remmina
     luxtrust-middleware
@@ -34,13 +37,12 @@ in
     (pkgs.burpsuite.override {
       proEdition = true;
     })
-    neofetch
     aircrack-ng
     whois
     xclip
     thunderbird-latest
     blender
-    pulseeffects-legacy
+    easyeffects
     cool-retro-term
     nerd-fonts.jetbrains-mono
     tree
@@ -70,6 +72,7 @@ in
     firefox
     gnomeExtensions.astra-monitor
     gnomeExtensions.tactile
+    gnomeExtensions.appindicator
     gnome-tweaks
   ];
 

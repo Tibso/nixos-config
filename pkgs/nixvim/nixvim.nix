@@ -1,3 +1,4 @@
+{ pkgs, ... }:
 let
   readFolders = folder:
   let
@@ -47,6 +48,7 @@ in
       #hop.enable = true;
       #tmux-navigator.enable = true;
     };
+    extraPlugins = [ pkgs.vimPlugins.plenary-nvim ]; # https://github.com/nix-community/nixvim/issues/4224
 
   #  extraConfigLua = ''
   #    local lsp_status = require('lsp-status')

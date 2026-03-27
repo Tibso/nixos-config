@@ -3,9 +3,9 @@
   lib,
   fetchurl,
   stdenv,
+  buildFHSEnv,
   dpkg,
-  autoPatchelfHook,
-  makeWrapper,
+  autoPatchelfHook
 }:
 let
   pname = "luxtrust-middleware";
@@ -48,66 +48,80 @@ let
       dpkg-deb -x ${gemaltoDeb} .
     '';
     installPhase = ''
-      mkdir -p $out/{bin,ClassicClient,lib,share/icons/hicolor/48x48/apps,xdg}
-      cp -r usr/bin/* $out/bin/
-      cp -r etc/ClassicClient/* $out/ClassicClient/
-      cp -r usr/lib/* $out/lib/
-      cp -r usr/share/* $out/share/
-      rm -rf $out/share/{doc,pixmaps}/
-      mv $out/share/icons/classicclient_logo.png $out/share/icons/hicolor/48x48/apps/
+      mkdir -p $out/{etc,usr,bin,lib,share}
+      cp -r etc/* $out/etc/
+      cp -r usr/* $out/usr/
+      rm -rf $out/usr/share/{doc,pixmaps}/
+      ln -s $out/usr/bin/* $out/bin/
+      ln -s $out/usr/share/* $out/share/
+      ln -s $out/usr/lib/* $out/lib/
+      mkdir -p $out/share/icons/hicolor/48x48/apps
+      cp $out/usr/share/icons/classicclient_logo.png $out/share/icons/hicolor/48x48/apps/
       substituteInPlace $out/share/applications/LinuxChangepintool.desktop \
         --replace-fail 'Icon=classicclient_logo.png' "Icon=$out/share/icons/hicolor/48x48/apps/classicclient_logo.png"
     '';
   };
+
+  luxtrust-middleware-raw = stdenv.mkDerivation {
+    pname = "${pname}-raw";
+    version = "${version}";
+    src = luxtrustDeb;
+    buildInputs = with pkgs; [
+      gemalto-middleware
+      gcc.cc.lib
+      freetype
+      alsa-lib
+      libx11
+      libxext
+      libxrender
+      libxtst
+      libxi
+    ];
+    nativeBuildInputs = [
+      dpkg
+      autoPatchelfHook
+    ];
+    unpackPhase = ''
+      dpkg-deb -x ${luxtrustDeb} .
+    '';
+    installPhase = ''
+      mkdir -p $out/{bin,LuxTrustMiddleware,share/{applications,icons/hicolor/256x256/apps}}
+      cp -r opt/LuxTrustMiddleware/* $out/LuxTrustMiddleware/
+      ln -s $out/LuxTrustMiddleware/LuxTrustMiddleware $out/bin/LuxTrustMiddleware
+      mv $out/LuxTrustMiddleware/LuxTrustMiddleware.desktop $out/share/applications/
+      mv $out/LuxTrustMiddleware/LuxTrustMiddleware.png $out/share/icons/hicolor/256x256/apps/
+      substituteInPlace $out/share/applications/LuxTrustMiddleware.desktop \
+        --replace-fail "Icon=/opt/LuxTrustMiddleware/LuxTrustMiddleware.png" "Icon=$out/share/icons/hicolor/256x256/apps/LuxTrustMiddleware.png"
+
+      # add the .so where the middleware expects it
+      cp ${pkgs.fontconfig.lib}/lib/libfontconfig.so $out/LuxTrustMiddleware/runtime/lib/amd64/server/
+    '';
+  };
 in
-stdenv.mkDerivation {
+# FHSEnv necessary as luxtrust-middleware will attempt to read gemalto-middleware files under /etc and /usr via hardcoded paths
+buildFHSEnv {
   pname = "${pname}";
   version = "${version}";
-  src = luxtrustDeb;
-  buildInputs = with pkgs; [
-    gemalto-middleware
-    jdk17
-    pcsclite
-    gcc.cc.lib
-    freetype
-    alsa-lib
-    xorg.libX11
-    xorg.libXext
-    xorg.libXrender
-    xorg.libXtst
-    xorg.libXi
-  ];
-  nativeBuildInputs = [
-    dpkg
-    autoPatchelfHook
-    makeWrapper
-  ];
-  unpackPhase = ''
-    dpkg-deb -x ${luxtrustDeb} .
-  '';
-  installPhase = ''
-    mkdir -p $out/{bin,LuxTrustMiddleware,share/{applications,icons/hicolor/256x256/apps}}
-    cp -r opt/LuxTrustMiddleware/* $out/LuxTrustMiddleware/
-    ln -s $out/LuxTrustMiddleware/LuxTrustMiddleware $out/bin/LuxTrustMiddleware
-    mv $out/LuxTrustMiddleware/LuxTrustMiddleware.desktop $out/share/applications/
-    mv $out/LuxTrustMiddleware/LuxTrustMiddleware.png $out/share/icons/hicolor/256x256/apps/
+
+  targetPkgs = pkgs: [ gemalto-middleware luxtrust-middleware-raw ];
+  runScript = "LuxTrustMiddleware";
+
+  # make the desktop item available outside of FHSEnv
+  extraInstallCommands = ''
+    mkdir -p $out/share/applications
+    cp ${luxtrust-middleware-raw}/share/applications/LuxTrustMiddleware.desktop $out/share/applications/
     substituteInPlace $out/share/applications/LuxTrustMiddleware.desktop \
-      --replace-fail 'Exec=/opt/LuxTrustMiddleware/LuxTrustMiddleware' "Exec=$out/bin/LuxTrustMiddleware" \
-      --replace-fail 'Icon=/opt/LuxTrustMiddleware/LuxTrustMiddleware.png' "Icon=$out/share/icons/hicolor/256x256/apps/LuxTrustMiddleware.png"
-  '';
-  postFixup = ''
-    wrapProgram $out/bin/LuxTrustMiddleware \
-      --set JAVA_HOME ${pkgs.jdk17} \
-      --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ pkgs.jdk17 pkgs.pcsclite ]}
+      --replace-fail "Exec=/opt/LuxTrustMiddleware/LuxTrustMiddleware" "Exec=$out/bin/${pname}"
   '';
 
-  meta = {
+  meta = with lib; {
     homepage = "https://www.luxtrust.com/en/middleware";
     # license: https://www.luxtrust.lu/downloads/middleware/eula.pdf
-    license = lib.licenses.unfree;
+    license = licenses.unfree;
+    mainProgram = "LuxTrustMiddleware";
     description = "Middleware for LuxTrust cards - Luxembourg qualified electronic signature / authentication system";
     categories = [ "Utility" "Security" ];
     platforms = [ "x86_64-linux" ];
-    maintainers = with lib.maintainers; [ tibso ];
+    maintainers = with maintainers; [ tibso ];
   };
 }
